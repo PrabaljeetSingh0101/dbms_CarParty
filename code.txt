@@ -1,0 +1,70 @@
+CREATE DATABASE AutoPartsDB;
+USE AutoPartsDB;
+
+CREATE TABLE SCRAP_DEALER (
+    Dealer_ID      INT PRIMARY KEY AUTO_INCREMENT,
+    Name           VARCHAR(100) NOT NULL,
+    Contact_No     VARCHAR(15) UNIQUE NOT NULL,
+    Location       VARCHAR(100) NOT NULL
+);
+
+CREATE TABLE GARAGE (
+    Garage_ID      INT PRIMARY KEY AUTO_INCREMENT,
+    Name           VARCHAR(100) NOT NULL,
+    Location       VARCHAR(100) NOT NULL,
+    License_ID     VARCHAR(50) UNIQUE NOT NULL,
+    Dealer_ID   INT NOT NULL,                    -- ← owner
+    FOREIGN KEY (Dealer_ID) REFERENCES SCRAP_DEALER(Dealer_ID)
+);
+
+CREATE TABLE PART_CATALOG (
+    Catalog_ID     INT PRIMARY KEY AUTO_INCREMENT,
+    Category       VARCHAR(50) NOT NULL,
+    Brand          VARCHAR(50),
+    Model          VARCHAR(50)
+);
+
+CREATE TABLE PART_ITEM (
+    Item_ID     INT PRIMARY KEY AUTO_INCREMENT,
+    Catalog_ID  INT NOT NULL,
+    Garage_ID   INT NOT NULL,
+    `Condition` VARCHAR(20) NOT NULL,
+    Price       DECIMAL(10,2) CHECK (Price > 0),
+    Status      VARCHAR(20) DEFAULT 'Available'
+                CHECK (Status IN ('Available','Booked','Sold')),
+    FOREIGN KEY (Catalog_ID) REFERENCES PART_CATALOG(Catalog_ID),
+    FOREIGN KEY (Garage_ID) REFERENCES GARAGE(Garage_ID)
+);
+
+CREATE TABLE INVENTORY (
+    Inventory_ID   INT PRIMARY KEY AUTO_INCREMENT,
+    Catalog_ID     INT NOT NULL,
+    Garage_ID      INT NOT NULL,
+    Quantity       INT NOT NULL DEFAULT 0 CHECK (Quantity >= 0),
+    Reorder_Level  INT DEFAULT 5,
+    Last_Restocked DATETIME,
+    FOREIGN KEY (Catalog_ID) REFERENCES PART_CATALOG(Catalog_ID),
+    FOREIGN KEY (Garage_ID) REFERENCES GARAGE(Garage_ID),
+    UNIQUE (Catalog_ID, Garage_ID)
+);
+
+CREATE TABLE CUSTOMER (
+    Customer_ID    INT PRIMARY KEY AUTO_INCREMENT,
+    Name           VARCHAR(100) NOT NULL,
+    Contact_No     VARCHAR(15) UNIQUE NOT NULL,
+    City           VARCHAR(50)
+);
+
+CREATE TABLE BOOKING (
+    Booking_ID     INT PRIMARY KEY AUTO_INCREMENT,
+    Booking_Date   DATE NOT NULL,
+    Booking_Time   TIME NOT NULL,
+    Booking_Status VARCHAR(20) 
+        CHECK (Booking_Status IN ('Completed','Cancelled','No-Show')),
+    Customer_ID    INT NOT NULL,
+    Catalog_ID     INT NOT NULL,       -- references the part TYPE, not individual item
+    Garage_ID      INT NOT NULL,       -- which garage they're booking from
+    FOREIGN KEY (Customer_ID) REFERENCES CUSTOMER(Customer_ID),
+    FOREIGN KEY (Catalog_ID) REFERENCES PART_CATALOG(Catalog_ID),
+    FOREIGN KEY (Garage_ID) REFERENCES GARAGE(Garage_ID)
+);
