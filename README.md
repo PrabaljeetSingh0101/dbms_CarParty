@@ -1,3 +1,3 @@
-To Keep History of changes
-reasons&explainations for changes 
-Future upgradations 
+◆ Keep history of changes  
+◆ Reasons & explanations for changes  
+◆ Future upgradations 
