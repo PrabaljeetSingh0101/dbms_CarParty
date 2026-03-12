@@ -1,2 +1,4 @@
 Parbal- Working on Issue#1, but now ☑️
-Parbal- Working on Issue#2/ Problem 1.2 (Booking a Part Locks It Forever (1:1 Constraint Bug))
+Parbal- Working on Issue#2/ Problem 1.2, but now ☑️
+Parbal- Working on Issue#2/ Problem 1.3
+
