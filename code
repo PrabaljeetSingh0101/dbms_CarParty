@@ -56,3 +56,12 @@ CREATE TABLE BOOKING (
     FOREIGN KEY (Customer_ID) REFERENCES CUSTOMER(Customer_ID),
     FOREIGN KEY (Item_ID) REFERENCES PART_ITEM(Item_ID)
 );
+
+CREATE TABLE SALE (
+    Sale_ID       INT PRIMARY KEY AUTO_INCREMENT,
+    Booking_ID    INT NOT NULL,
+    Sale_Date     DATETIME DEFAULT CURRENT_TIMESTAMP,
+    Final_Price   DECIMAL(10,2) NOT NULL,
+    Payment_Mode  VARCHAR(20) CHECK (Payment_Mode IN ('Cash','UPI','Card','Online')),
+    FOREIGN KEY (Booking_ID) REFERENCES BOOKING(Booking_ID)
+);
