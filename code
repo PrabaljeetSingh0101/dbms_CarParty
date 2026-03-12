@@ -5,7 +5,8 @@ CREATE TABLE SCRAP_DEALER (
     Dealer_ID      INT PRIMARY KEY AUTO_INCREMENT,
     Name           VARCHAR(100) NOT NULL,
     Contact_No     VARCHAR(15) UNIQUE NOT NULL,
-    Location       VARCHAR(100) NOT NULL
+    Location       VARCHAR(100) NOT NULL,
+    Is_Active      BOOLEAN DEFAULT TRUE
 );
 
 CREATE TABLE GARAGE (
@@ -13,7 +14,7 @@ CREATE TABLE GARAGE (
     Name           VARCHAR(100) NOT NULL,
     Location       VARCHAR(100) NOT NULL,
     License_ID     VARCHAR(50) UNIQUE NOT NULL,
-    Dealer_ID   INT NOT NULL,                    -- ← owner
+    Dealer_ID   INT NOT NULL,
     FOREIGN KEY (Dealer_ID) REFERENCES SCRAP_DEALER(Dealer_ID)
 );
 
@@ -40,7 +41,8 @@ CREATE TABLE CUSTOMER (
     Customer_ID    INT PRIMARY KEY AUTO_INCREMENT,
     Name           VARCHAR(100) NOT NULL,
     Contact_No     VARCHAR(15) UNIQUE NOT NULL,
-    City           VARCHAR(50)
+    City           VARCHAR(50),
+    Is_Active      BOOLEAN DEFAULT TRUE
 );
 
 CREATE TABLE BOOKING (
@@ -50,9 +52,7 @@ CREATE TABLE BOOKING (
     Booking_Status VARCHAR(20) 
         CHECK (Booking_Status IN ('Completed','Cancelled','No-Show')),
     Customer_ID    INT NOT NULL,
-    Catalog_ID     INT NOT NULL,       -- references the part TYPE, not individual item
-    Garage_ID      INT NOT NULL,       -- which garage they're booking from
+    Item_ID        INT NOT NULL,
     FOREIGN KEY (Customer_ID) REFERENCES CUSTOMER(Customer_ID),
-    FOREIGN KEY (Catalog_ID) REFERENCES PART_CATALOG(Catalog_ID),
-    FOREIGN KEY (Garage_ID) REFERENCES GARAGE(Garage_ID)
+    FOREIGN KEY (Item_ID) REFERENCES PART_ITEM(Item_ID)
 );
