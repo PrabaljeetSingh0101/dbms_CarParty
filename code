@@ -88,11 +88,11 @@ INSERT INTO PART_ITEM (Catalog_ID, Garage_ID, `Condition`, Price, Status) VALUES
 (1, 1, 'Good',        45000.00, 'Available'),
 (2, 1, 'Fair',         3500.00, 'Sold'),
 (3, 2, 'Good',         8000.00, 'Available'),
-(4, 3, 'Damaged',     12000.00, 'Booked'),
+(4, 3, 'Damaged',     12000.00, 'Sold'),
 (5, 3, 'Fair',        22000.00, 'Available'),
 (1, 4, 'Good',        48000.00, 'Available'),
 (6, 4, 'Damaged',      4500.00, 'Sold'),
-(7, 5, 'Good',         9500.00, 'Booked'),
+(7, 5, 'Good',         9500.00, 'Available'),
 (2, 2, 'Good',         4000.00, 'Available'),
 (3, 1, 'Fair',         6500.00, 'Sold');
 
@@ -111,4 +111,3 @@ INSERT INTO BOOKING (Booking_Date, Booking_Time, Booking_Status, Customer_ID, It
 ('2025-03-07', '16:00:00', 'Completed', 1, 10),
 ('2025-03-08', '12:00:00', 'Completed', 5,  7),
 ('2025-03-10', '10:30:00', 'Cancelled', 2,  5);
-
