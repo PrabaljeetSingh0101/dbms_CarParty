@@ -56,6 +56,16 @@ CREATE TABLE BOOKING (
     FOREIGN KEY (Item_ID) REFERENCES PART_ITEM(Item_ID)
 );
 
+CREATE TABLE WISHLIST (
+    Wishlist_ID   INT PRIMARY KEY AUTO_INCREMENT,
+    Customer_ID   INT NOT NULL,
+    Catalog_ID       INT NOT NULL,
+    Notified      BOOLEAN DEFAULT FALSE,
+    Created_At    DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (Customer_ID) REFERENCES CUSTOMER(Customer_ID)
+    FOREIGN KEY (Catalog_ID) REFERENCES PART_ITEM(PART_CATALOG)
+);
+
 
 
 -- ============================================================
@@ -98,9 +108,9 @@ INSERT INTO PART_ITEM (Catalog_ID, Garage_ID, `Condition`, Price, Status) VALUES
 
 INSERT INTO CUSTOMER (Name, Contact_No, City, Is_Active) VALUES
 ('Menka Devi',       '8001234567', 'Delhi',     TRUE),
-('Savitri Bai',      '8009876543', 'Mumbai',    TRUE),
-('Govindrao Patel',  '8005556677', 'Jaipur',    TRUE),
-('Kamala Kumari',    '8003334455', 'Ahmedabad', TRUE),
+('Savitri Devi',      '8009876543', 'Mumbai',    TRUE),
+('Mewa Singh',  '8005556677', 'Jaipur',    TRUE),
+('Meera Bai',    '8003334455', 'Ahmedabad', TRUE),
 ('Dharamveer Singh', '8007778899', 'Delhi',     FALSE);
 
 INSERT INTO BOOKING (Booking_Date, Booking_Time, Booking_Status, Customer_ID, Item_ID) VALUES
@@ -111,3 +121,4 @@ INSERT INTO BOOKING (Booking_Date, Booking_Time, Booking_Status, Customer_ID, It
 ('2025-03-07', '16:00:00', 'Completed', 1, 10),
 ('2025-03-08', '12:00:00', 'Completed', 5,  7),
 ('2025-03-10', '10:30:00', 'Cancelled', 2,  5);
+
