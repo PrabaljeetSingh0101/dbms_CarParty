@@ -66,17 +66,6 @@ CREATE TABLE WISHLIST (
     FOREIGN KEY (Catalog_ID) REFERENCES PART_CATALOG(Catalog_ID)
 );
 
-CREATE TABLE NOTIFICATION (
-    Notification_ID INT PRIMARY KEY AUTO_INCREMENT,
-    From_Garage_ID  INT NOT NULL,          -- From whom (The Garage holding the part)
-    To_Customer_ID  INT NOT NULL,          -- To whom (The Customer)
-    Message         VARCHAR(255) NOT NULL, -- The notification text
-    Created_At      DATETIME DEFAULT CURRENT_TIMESTAMP, -- Time notification arrived
-    Is_Read         BOOLEAN DEFAULT FALSE, -- To track if the user saw it
-    FOREIGN KEY (From_Garage_ID) REFERENCES GARAGE(Garage_ID),
-    FOREIGN KEY (To_Customer_ID) REFERENCES CUSTOMER(Customer_ID)
-);
-
 DELIMITER //
 
 CREATE TRIGGER Notify_Wishlist_On_Availability
@@ -134,38 +123,7 @@ END //
 
 DELIMITER ;
 
-DROP TRIGGER IF EXISTS Notify_Wishlist_On_Availability;
 
-DELIMITER //
-
-CREATE TRIGGER Notify_Wishlist_On_Availability
-AFTER UPDATE ON PART_ITEM
-FOR EACH ROW
-BEGIN
-    -- Check if the part's status just changed to 'Available' from something else
-    IF NEW.Status = 'Available' AND OLD.Status != 'Available' THEN
-        
-        -- Step 1: Create the notification messages for everyone on the wishlist
-        -- We use INSERT INTO ... SELECT to bulk-insert notifications for all matching customers
-        INSERT INTO NOTIFICATION (From_Garage_ID, To_Customer_ID, Message)
-        SELECT 
-            NEW.Garage_ID, 
-            w.Customer_ID, 
-            CONCAT('Good news! A part on your wishlist (Catalog ID: ', NEW.Catalog_ID, ') is now available.')
-        FROM WISHLIST w
-        WHERE w.Catalog_ID = NEW.Catalog_ID 
-          AND w.Notified = FALSE;
-          
-        -- Step 2: Update the wishlist so we don't spam them again in the future
-        UPDATE WISHLIST
-        SET Notified = TRUE
-        WHERE Catalog_ID = NEW.Catalog_ID 
-          AND Notified = FALSE;
-          
-    END IF;
-END //
-
-DELIMITER ;
 
 -- ============================================================
 -- SAMPLE DATA
@@ -220,13 +178,3 @@ INSERT INTO BOOKING (Booking_Date, Booking_Time, Booking_Status, Customer_ID, It
 ('2025-03-07', '16:00:00', 'Completed', 1, 10),
 ('2025-03-08', '12:00:00', 'Completed', 5,  7),
 ('2025-03-10', '10:30:00', 'Cancelled', 2,  5);
-
--- 1. Add a customer to the wishlist waiting for a Maruti Swift Headlight (Catalog_ID = 2)
-INSERT INTO WISHLIST (Customer_ID, Catalog_ID) VALUES (1, 2);
-
--- 2. We know from your sample data that Item_ID = 2 (which is Catalog_ID = 2) is currently 'Sold'.
--- Let's update it to 'Available' (e.g., maybe a return happened).
-UPDATE PART_ITEM SET Status = 'Available' WHERE Item_ID = 2;
-
--- 3. Now check your notifications table! You should see a new message.
-SELECT * FROM NOTIFICATION;
