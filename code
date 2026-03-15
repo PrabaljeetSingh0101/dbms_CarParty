@@ -62,9 +62,66 @@ CREATE TABLE WISHLIST (
     Catalog_ID       INT NOT NULL,
     Notified      BOOLEAN DEFAULT FALSE,
     Created_At    DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (Customer_ID) REFERENCES CUSTOMER(Customer_ID)
+    FOREIGN KEY (Customer_ID) REFERENCES CUSTOMER(Customer_ID),
     FOREIGN KEY (Catalog_ID) REFERENCES PART_CATALOG(Catalog_ID)
 );
+
+DELIMITER //
+
+CREATE TRIGGER Notify_Wishlist_On_Availability
+AFTER UPDATE ON PART_ITEM
+FOR EACH ROW
+BEGIN
+    -- Check if the part's status just changed to 'Available' from something else
+    IF NEW.Status = 'Available' AND OLD.Status != 'Available' THEN
+        
+        -- Update the wishlist for anyone waiting for this specific part catalog type
+        UPDATE WISHLIST
+        SET Notified = TRUE
+        WHERE Catalog_ID = NEW.Catalog_ID 
+          AND Notified = FALSE; -- Only update if they haven't been notified yet
+          
+    END IF;
+END //
+
+DELIMITER ;
+
+DELIMITER //
+
+CREATE TRIGGER Auto_Book_Part_Item
+AFTER INSERT ON BOOKING
+FOR EACH ROW
+BEGIN
+    -- Update the part's status to 'Booked' for the specific Item_ID that was just inserted
+    UPDATE PART_ITEM
+    SET Status = 'Booked'
+    WHERE Item_ID = NEW.Item_ID 
+      AND Status = 'Available'; -- Safety check: only update if it was actually available
+END //
+
+DELIMITER ;
+
+DELIMITER //
+
+CREATE TRIGGER Update_Part_On_Booking_Status
+AFTER UPDATE ON BOOKING
+FOR EACH ROW
+BEGIN
+    -- If the booking was cancelled or the customer didn't show up, make the part available again
+    IF NEW.Booking_Status IN ('Cancelled', 'No-Show') THEN
+        UPDATE PART_ITEM
+        SET Status = 'Available'
+        WHERE Item_ID = NEW.Item_ID;
+        
+    -- If the booking is successfully completed and they bought it, mark the part as sold
+    ELSEIF NEW.Booking_Status = 'Completed' THEN
+        UPDATE PART_ITEM
+        SET Status = 'Sold'
+        WHERE Item_ID = NEW.Item_ID;
+    END IF;
+END //
+
+DELIMITER ;
 
 
 
