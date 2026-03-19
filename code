@@ -69,18 +69,15 @@ CREATE TABLE WISHLIST (
 DELIMITER //
 
 CREATE TRIGGER Notify_Wishlist_On_Availability
-AFTER UPDATE ON PART_ITEM
+AFTER INSERT ON PART_ITEM          -- fires on NEW part being added, not status change
 FOR EACH ROW
 BEGIN
-    -- Check if the part's status just changed to 'Available' from something else
-    IF NEW.Status = 'Available' AND OLD.Status != 'Available' THEN
-        
-        -- Update the wishlist for anyone waiting for this specific part catalog type
+    -- Only notify if the newly inserted part is immediately Available
+    IF NEW.Status = 'Available' THEN
         UPDATE WISHLIST
         SET Notified = TRUE
-        WHERE Catalog_ID = NEW.Catalog_ID 
-          AND Notified = FALSE; -- Only update if they haven't been notified yet
-          
+        WHERE Catalog_ID = NEW.Catalog_ID
+          AND Notified = FALSE;   -- don't re-notify if already notified before
     END IF;
 END //
 
