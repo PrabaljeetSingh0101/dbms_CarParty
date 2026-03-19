@@ -20,7 +20,7 @@
   color-scheme: light;
 
   /* ── Surface scale ── */
-  --background:           oklch(0.98  0.006  85);   /* warm parchment          */
+  --background:           oklch(0.9818 0.0054 95.1);   /* warm parchment          */
   --surface-raised:       oklch(0.99  0.004  85);   /* floated card            */
   --surface-overlay:      oklch(1.00  0.002  80);   /* modals / popovers       */
   --surface-sunken:       oklch(0.95  0.008  80);   /* inset / well            */
