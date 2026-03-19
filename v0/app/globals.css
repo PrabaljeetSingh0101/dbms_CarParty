@@ -4,74 +4,76 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
+  /* ── Light Mode (Claude's warm cream aesthetic) ── */
+  --background: oklch(0.98 0.005 85);              /* warm off-white cream */
+  --foreground: oklch(0.17 0.01 55);               /* warm near-black */
+  --card: oklch(0.99 0.003 85);                    /* soft warm white */
+  --card-foreground: oklch(0.17 0.01 55);
+  --popover: oklch(0.99 0.003 85);
+  --popover-foreground: oklch(0.17 0.01 55);
+  --primary: oklch(0.64 0.15 40);                  /* ✦ Claude terracotta/coral */
+  --primary-foreground: oklch(0.99 0.003 85);      /* cream white */
+  --secondary: oklch(0.94 0.01 80);                /* warm beige */
+  --secondary-foreground: oklch(0.17 0.01 55);
+  --muted: oklch(0.94 0.01 80);                    /* warm beige */
+  --muted-foreground: oklch(0.55 0.015 55);        /* warm medium gray */
+  --accent: oklch(0.91 0.015 75);                  /* light sand accent */
+  --accent-foreground: oklch(0.17 0.01 55);
+  --destructive: oklch(0.55 0.22 27);              /* warm red */
+  --destructive-foreground: oklch(0.55 0.22 27);
+  --border: oklch(0.91 0.01 80);                   /* warm light border */
+  --input: oklch(0.91 0.01 80);
+  --ring: oklch(0.64 0.15 40);                     /* terracotta ring */
+  --chart-1: oklch(0.64 0.15 40);                  /* terracotta */
+  --chart-2: oklch(0.60 0.10 160);                 /* muted sage */
+  --chart-3: oklch(0.50 0.08 230);                 /* dusty blue */
+  --chart-4: oklch(0.75 0.15 80);                  /* warm gold */
+  --chart-5: oklch(0.55 0.12 20);                  /* deep coral */
   --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --sidebar: oklch(0.96 0.008 85);                 /* slightly darker cream */
+  --sidebar-foreground: oklch(0.17 0.01 55);
+  --sidebar-primary: oklch(0.64 0.15 40);          /* terracotta */
+  --sidebar-primary-foreground: oklch(0.99 0.003 85);
+  --sidebar-accent: oklch(0.92 0.012 80);          /* warm highlight */
+  --sidebar-accent-foreground: oklch(0.17 0.01 55);
+  --sidebar-border: oklch(0.91 0.01 80);
+  --sidebar-ring: oklch(0.64 0.15 40);
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.145 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.145 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.985 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.396 0.141 25.723);
-  --destructive-foreground: oklch(0.637 0.237 25.331);
-  --border: oklch(0.269 0 0);
-  --input: oklch(0.269 0 0);
-  --ring: oklch(0.439 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(0.269 0 0);
-  --sidebar-ring: oklch(0.439 0 0);
+  /* ── Dark Mode (Claude's warm dark brown aesthetic) ── */
+  --background: oklch(0.17 0.01 55);               /* warm dark charcoal-brown */
+  --foreground: oklch(0.96 0.008 80);              /* warm cream text */
+  --card: oklch(0.22 0.01 55);                     /* elevated warm dark */
+  --card-foreground: oklch(0.96 0.008 80);
+  --popover: oklch(0.22 0.01 55);
+  --popover-foreground: oklch(0.96 0.008 80);
+  --primary: oklch(0.70 0.15 45);                  /* ✦ brighter terracotta */
+  --primary-foreground: oklch(0.17 0.01 55);
+  --secondary: oklch(0.27 0.01 55);                /* warm dark gray */
+  --secondary-foreground: oklch(0.96 0.008 80);
+  --muted: oklch(0.27 0.01 55);
+  --muted-foreground: oklch(0.65 0.01 55);         /* warm muted text */
+  --accent: oklch(0.30 0.015 50);                  /* warm dark accent */
+  --accent-foreground: oklch(0.96 0.008 80);
+  --destructive: oklch(0.42 0.16 25);
+  --destructive-foreground: oklch(0.65 0.22 25);
+  --border: oklch(0.32 0.01 55);                   /* warm dark border */
+  --input: oklch(0.32 0.01 55);
+  --ring: oklch(0.70 0.15 45);                     /* terracotta ring */
+  --chart-1: oklch(0.70 0.15 45);                  /* bright terracotta */
+  --chart-2: oklch(0.65 0.12 165);                 /* sage green */
+  --chart-3: oklch(0.75 0.15 80);                  /* warm gold */
+  --chart-4: oklch(0.60 0.18 300);                 /* soft purple */
+  --chart-5: oklch(0.65 0.20 20);                  /* warm coral */
+  --sidebar: oklch(0.20 0.01 55);                  /* darker warm panel */
+  --sidebar-foreground: oklch(0.96 0.008 80);
+  --sidebar-primary: oklch(0.70 0.15 45);
+  --sidebar-primary-foreground: oklch(0.96 0.008 80);
+  --sidebar-accent: oklch(0.27 0.01 55);
+  --sidebar-accent-foreground: oklch(0.96 0.008 80);
+  --sidebar-border: oklch(0.30 0.01 55);
+  --sidebar-ring: oklch(0.70 0.15 45);
 }
 
 @theme inline {
