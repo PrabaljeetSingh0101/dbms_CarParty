@@ -69,7 +69,7 @@ CREATE TABLE WISHLIST (
 DELIMITER //
 
 CREATE TRIGGER Notify_Wishlist_On_Availability
-AFTER INSERT ON PART_ITEM          -- fires on NEW part being added, not status change
+AFTER INSERT ON PART_ITEM          -- fires on NEW part being added
 FOR EACH ROW
 BEGIN
     -- Only notify if the newly inserted part is immediately Available
