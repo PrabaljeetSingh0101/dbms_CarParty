@@ -1,0 +1,182 @@
+CREATE DATABASE IF NOT EXISTS AutoPartsDB;
+USE AutoPartsDB;
+
+-- Drop tables in reverse dependency order if they exist
+DROP TABLE IF EXISTS WISHLIST;
+DROP TABLE IF EXISTS BOOKING;
+DROP TABLE IF EXISTS CUSTOMER;
+DROP TABLE IF EXISTS PART_ITEM;
+DROP TABLE IF EXISTS PART_CATALOG;
+DROP TABLE IF EXISTS GARAGE;
+DROP TABLE IF EXISTS SCRAP_DEALER;
+
+CREATE TABLE SCRAP_DEALER (
+    Dealer_ID      INT PRIMARY KEY AUTO_INCREMENT,
+    Name           VARCHAR(100) NOT NULL,
+    Contact_No     VARCHAR(15) UNIQUE NOT NULL,
+    Location       VARCHAR(100) NOT NULL,
+    Is_Active      BOOLEAN DEFAULT TRUE
+);
+
+CREATE TABLE GARAGE (
+    Garage_ID      INT PRIMARY KEY AUTO_INCREMENT,
+    Name           VARCHAR(100) NOT NULL,
+    Location       VARCHAR(100) NOT NULL,
+    Dealer_ID   INT NOT NULL,
+    FOREIGN KEY (Dealer_ID) REFERENCES SCRAP_DEALER(Dealer_ID)
+);
+
+CREATE TABLE PART_CATALOG (
+    Catalog_ID     INT PRIMARY KEY AUTO_INCREMENT,
+    Category       VARCHAR(50) NOT NULL,
+    Brand          VARCHAR(50),
+    Model          VARCHAR(50)
+);
+
+CREATE TABLE PART_ITEM (
+    Item_ID     INT PRIMARY KEY AUTO_INCREMENT,
+    Catalog_ID  INT NOT NULL,
+    Garage_ID   INT NOT NULL,
+    `Condition` VARCHAR(20) NOT NULL,
+    Price       DECIMAL(10,2) CHECK (Price > 0),
+    Status      VARCHAR(20) DEFAULT 'Available'
+                CHECK (Status IN ('Available','Booked','Sold')),
+    FOREIGN KEY (Catalog_ID) REFERENCES PART_CATALOG(Catalog_ID),
+    FOREIGN KEY (Garage_ID) REFERENCES GARAGE(Garage_ID)
+);
+
+CREATE TABLE CUSTOMER (
+    Customer_ID    INT PRIMARY KEY AUTO_INCREMENT,
+    Name           VARCHAR(100) NOT NULL,
+    Contact_No     VARCHAR(15) UNIQUE NOT NULL,
+    City           VARCHAR(50),
+    Is_Active      BOOLEAN DEFAULT TRUE
+);
+
+CREATE TABLE BOOKING (
+    Booking_ID     INT PRIMARY KEY AUTO_INCREMENT,
+    Booking_Date   DATE NOT NULL,
+    Booking_Time   TIME NOT NULL,
+    Booking_Status VARCHAR(20) 
+        CHECK (Booking_Status IN ('Completed','Cancelled','No-Show')),
+    Customer_ID    INT NOT NULL,
+    Item_ID        INT NOT NULL,
+    FOREIGN KEY (Customer_ID) REFERENCES CUSTOMER(Customer_ID),
+    FOREIGN KEY (Item_ID) REFERENCES PART_ITEM(Item_ID)
+);
+
+CREATE TABLE WISHLIST (
+    Wishlist_ID   INT PRIMARY KEY AUTO_INCREMENT,
+    Customer_ID   INT NOT NULL,
+    Catalog_ID       INT NOT NULL,
+    Notified      BOOLEAN DEFAULT FALSE,
+    Created_At    DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (Customer_ID) REFERENCES CUSTOMER(Customer_ID),
+    FOREIGN KEY (Catalog_ID) REFERENCES PART_CATALOG(Catalog_ID)
+);
+
+-- Triggers
+
+DELIMITER //
+
+CREATE TRIGGER Notify_Wishlist_On_Availability
+AFTER INSERT ON PART_ITEM
+FOR EACH ROW
+BEGIN
+    IF NEW.Status = 'Available' THEN
+        UPDATE WISHLIST
+        SET Notified = TRUE
+        WHERE Catalog_ID = NEW.Catalog_ID
+          AND Notified = FALSE;
+    END IF;
+END //
+
+DELIMITER ;
+
+DELIMITER //
+
+CREATE TRIGGER Auto_Book_Part_Item
+AFTER INSERT ON BOOKING
+FOR EACH ROW
+BEGIN
+    UPDATE PART_ITEM
+    SET Status = 'Booked'
+    WHERE Item_ID = NEW.Item_ID 
+      AND Status = 'Available';
+END //
+
+DELIMITER ;
+
+DELIMITER //
+
+CREATE TRIGGER Update_Part_On_Booking_Status
+AFTER UPDATE ON BOOKING
+FOR EACH ROW
+BEGIN
+    IF NEW.Booking_Status IN ('Cancelled', 'No-Show') THEN
+        UPDATE PART_ITEM
+        SET Status = 'Available'
+        WHERE Item_ID = NEW.Item_ID;
+        
+    ELSEIF NEW.Booking_Status = 'Completed' THEN
+        UPDATE PART_ITEM
+        SET Status = 'Sold'
+        WHERE Item_ID = NEW.Item_ID;
+    END IF;
+END //
+
+DELIMITER ;
+
+-- ============================================================
+-- SAMPLE DATA
+-- ============================================================
+
+INSERT INTO SCRAP_DEALER (Name, Contact_No, Location, Is_Active) VALUES
+('Ramachandra',  '9876543210', 'Delhi',     TRUE),
+('Mohandas',     '9123456780', 'Mumbai',    TRUE),
+('Bhaskar',      '9988776655', 'Jaipur',    TRUE),
+('Jagdish',      '9011223344', 'Ahmedabad', FALSE);
+
+INSERT INTO GARAGE (Name, Location, Dealer_ID) VALUES
+('Ramachandra Garage East',  'East Delhi',    1),
+('Ramachandra Garage West',  'West Delhi',    1),
+('Mohandas Workshop',        'Andheri',       2),
+('Bhaskar Yard',             'Jaipur South',  3),
+('Jagdish Depot',            'SG Highway',    4);
+
+INSERT INTO PART_CATALOG (Category, Brand, Model) VALUES
+('Engine',      'Maruti',    'Maruti 800'),
+('Headlight',   'Maruti',    'Swift'),
+('Bumper',      'Maruti',    'Zen'),
+('Door Panel',  'Maruti',    'Gypsy'),
+('Transmission','Maruti',    'Ritz'),
+('Radiator',    'Hindustan', 'Ambassador'),
+('Alloy Wheel', 'Tata',      'Indica');
+
+INSERT INTO PART_ITEM (Catalog_ID, Garage_ID, `Condition`, Price, Status) VALUES
+(1, 1, 'Good',        45000.00, 'Available'),
+(2, 1, 'Fair',         3500.00, 'Sold'),
+(3, 2, 'Good',         8000.00, 'Available'),
+(4, 3, 'Damaged',     12000.00, 'Sold'),
+(5, 3, 'Fair',        22000.00, 'Available'),
+(1, 4, 'Good',        48000.00, 'Available'),
+(6, 4, 'Damaged',      4500.00, 'Sold'),
+(7, 5, 'Good',         9500.00, 'Available'),
+(2, 2, 'Good',         4000.00, 'Available'),
+(3, 1, 'Fair',         6500.00, 'Sold');
+
+INSERT INTO CUSTOMER (Name, Contact_No, City, Is_Active) VALUES
+('Menka Devi',       '8001234567', 'Delhi',     TRUE),
+('Savitri Devi',      '8009876543', 'Mumbai',    TRUE),
+('Mewa Singh',  '8005556677', 'Jaipur',    TRUE),
+('Meera Bai',    '8003334455', 'Ahmedabad', TRUE),
+('Dharamveer Singh', '8007778899', 'Delhi',     FALSE);
+
+INSERT INTO BOOKING (Booking_Date, Booking_Time, Booking_Status, Customer_ID, Item_ID) VALUES
+('2025-03-01', '10:00:00', 'Completed', 1,  2),
+('2025-03-03', '14:30:00', 'Completed', 2,  4),
+('2025-03-05', '11:00:00', 'Cancelled', 3,  1),
+('2025-03-06', '09:00:00', 'No-Show',   4,  8),
+('2025-03-07', '16:00:00', 'Completed', 1, 10),
+('2025-03-08', '12:00:00', 'Completed', 5,  7),
+('2025-03-10', '10:30:00', 'Cancelled', 2,  5);
