@@ -90,22 +90,57 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const connection = await pool.getConnection()
   try {
     const body = await req.json()
     const { Customer_ID, Item_ID, Booking_Date, Booking_Time } = body
 
     if (!Customer_ID || !Item_ID || !Booking_Date || !Booking_Time) {
+      connection.release()
       return NextResponse.json({ error: 'All fields are required' }, { status: 400 })
     }
 
-    // The DB trigger Auto_Book_Part_Item will automatically set the part status to 'Booked'
-    const [result] = await pool.query<ResultSetHeader>(
+    // ── TRANSACTION START ──
+    await connection.beginTransaction()
+
+    // Step 1: Lock the part row so no other transaction can touch it
+    const [partRows] = await connection.query<RowDataPacket[]>(
+      'SELECT Item_ID, Status FROM PART_ITEM WHERE Item_ID = ? FOR UPDATE',
+      [Item_ID]
+    )
+
+    // Step 2: Check if part is still available
+    if (partRows.length === 0) {
+      await connection.rollback()
+      connection.release()
+      return NextResponse.json({ error: 'Part not found' }, { status: 404 })
+    }
+
+    if (partRows[0].Status !== 'Available') {
+      await connection.rollback()
+      connection.release()
+      return NextResponse.json(
+        { error: `Part is already ${partRows[0].Status}. Cannot book.` },
+        { status: 409 }
+      )
+    }
+
+    // Step 3: Insert the booking (trigger Auto_Book_Part_Item sets part to 'Booked')
+    const [result] = await connection.query<ResultSetHeader>(
       'INSERT INTO BOOKING (Booking_Date, Booking_Time, Customer_ID, Item_ID) VALUES (?, ?, ?, ?)',
       [Booking_Date, Booking_Time, Customer_ID, Item_ID]
     )
 
+    // Step 4: Commit — all changes are saved atomically
+    await connection.commit()
+    // ── TRANSACTION END ──
+
+    connection.release()
     return NextResponse.json({ success: true, Booking_ID: result.insertId })
   } catch (error) {
+    // If ANYTHING fails, rollback ALL changes
+    await connection.rollback()
+    connection.release()
     console.error('Create booking error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
