@@ -90,16 +90,21 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  let body;
+  try {
+    body = await req.json();
+  } catch (error) {
+    return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
+  }
+
+  const { Customer_ID, Item_ID, Booking_Date, Booking_Time } = body
+
+  if (!Customer_ID || !Item_ID || !Booking_Date || !Booking_Time) {
+    return NextResponse.json({ error: 'All fields are required' }, { status: 400 })
+  }
+
   const connection = await pool.getConnection()
   try {
-    const body = await req.json()
-    const { Customer_ID, Item_ID, Booking_Date, Booking_Time } = body
-
-    if (!Customer_ID || !Item_ID || !Booking_Date || !Booking_Time) {
-      connection.release()
-      return NextResponse.json({ error: 'All fields are required' }, { status: 400 })
-    }
-
     // ── TRANSACTION START ──
     await connection.beginTransaction()
 
@@ -112,13 +117,11 @@ export async function POST(req: NextRequest) {
     // Step 2: Check if part is still available
     if (partRows.length === 0) {
       await connection.rollback()
-      connection.release()
       return NextResponse.json({ error: 'Part not found' }, { status: 404 })
     }
 
     if (partRows[0].Status !== 'Available') {
       await connection.rollback()
-      connection.release()
       return NextResponse.json(
         { error: `Part is already ${partRows[0].Status}. Cannot book.` },
         { status: 409 }
@@ -135,13 +138,20 @@ export async function POST(req: NextRequest) {
     await connection.commit()
     // ── TRANSACTION END ──
 
-    connection.release()
     return NextResponse.json({ success: true, Booking_ID: result.insertId })
-  } catch (error) {
+  } catch (error: any) {
     // If ANYTHING fails, rollback ALL changes
     await connection.rollback()
-    connection.release()
     console.error('Create booking error:', error)
+    
+    // Check if the error is a foreign key constraint failure (e.g., Customer doesn't exist)
+    if (error.code === 'ER_NO_REFERENCED_ROW_2') {
+      return NextResponse.json({ error: 'Invalid Customer ID or Item ID provided' }, { status: 400 })
+    }
+    
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  } finally {
+    // Guarantee that connection is returned to the pool
+    connection.release()
   }
 }

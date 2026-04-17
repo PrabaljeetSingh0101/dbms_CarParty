@@ -22,7 +22,7 @@ interface PartWithDetails {
   Status: string
   catalog?: PartCatalog
   garage?: Garage
-  dealer?: ScrapDealer | null
+  dealer?: ScrapDealer
 }
 
 export default function CustomerSearchPage() {

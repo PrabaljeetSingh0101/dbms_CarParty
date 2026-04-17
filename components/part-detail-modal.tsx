@@ -50,12 +50,14 @@ export function PartDetailModal({ part, open, onClose, onBookingComplete }: Part
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSimulating, setIsSimulating] = useState(false)
   const [simulationResults, setSimulationResults] = useState<{user1: string, user2: string} | null>(null)
+  const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
   const details = part
 
   const handleBooking = async () => {
     if (!date || !time || !user) return
     setIsSubmitting(true)
+    setErrorMsg(null)
     try {
       const res = await fetch("/api/bookings", {
         method: "POST",
@@ -68,12 +70,15 @@ export function PartDetailModal({ part, open, onClose, onBookingComplete }: Part
         }),
       })
       const data = await res.json()
-      if (data.success) {
+      if (res.ok && data.success) {
         setIsBooked(true)
         onBookingComplete?.()
+      } else {
+        setErrorMsg(data.error || "Failed to confirm booking. Please try again.")
       }
     } catch (error) {
       console.error("Booking error:", error)
+      setErrorMsg("A network error occurred. Please try again.")
     }
     setIsSubmitting(false)
   }
@@ -82,6 +87,7 @@ export function PartDetailModal({ part, open, onClose, onBookingComplete }: Part
     if (!date || !time || !user) return
     setIsSimulating(true)
     setSimulationResults(null)
+    setErrorMsg(null)
     
     // Create two dummy requests
     const req1 = fetch("/api/bookings", {
@@ -119,6 +125,7 @@ export function PartDetailModal({ part, open, onClose, onBookingComplete }: Part
       }
     } catch(err) {
       console.error(err)
+      setErrorMsg("Simulation failed due to a network error. Please try again.")
     }
     
     setIsSimulating(false)
@@ -264,6 +271,14 @@ export function PartDetailModal({ part, open, onClose, onBookingComplete }: Part
           </div>
 
           <Separator />
+
+          {errorMsg && (
+            <Alert variant="destructive">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertTitle>Booking Failed</AlertTitle>
+              <AlertDescription>{errorMsg}</AlertDescription>
+            </Alert>
+          )}
 
           {/* Booking Form */}
           <div className="space-y-4">
