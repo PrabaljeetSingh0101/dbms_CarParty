@@ -18,6 +18,8 @@ interface PartWithDetails {
   dealer?: ScrapDealer
 }
 
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert"
+
 import {
   Dialog,
   DialogContent,
@@ -30,7 +32,7 @@ import { Input } from "@/components/ui/input"
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
-import { MapPin, Phone, User, Building, Tag, Calendar, Clock, CheckCircle } from "lucide-react"
+import { MapPin, Phone, User, Users, Building, Tag, Calendar, Clock, CheckCircle, AlertTriangle } from "lucide-react"
 
 interface PartDetailModalProps {
   part: PartWithDetails
@@ -46,6 +48,8 @@ export function PartDetailModal({ part, open, onClose, onBookingComplete }: Part
   const [time, setTime] = useState("")
   const [isBooked, setIsBooked] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isSimulating, setIsSimulating] = useState(false)
+  const [simulationResults, setSimulationResults] = useState<{user1: string, user2: string} | null>(null)
 
   const details = part
 
@@ -72,6 +76,52 @@ export function PartDetailModal({ part, open, onClose, onBookingComplete }: Part
       console.error("Booking error:", error)
     }
     setIsSubmitting(false)
+  }
+
+  const handleSimulateConcurrency = async () => {
+    if (!date || !time || !user) return
+    setIsSimulating(true)
+    setSimulationResults(null)
+    
+    // Create two dummy requests
+    const req1 = fetch("/api/bookings", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        Customer_ID: user.id, // Actual user
+        Item_ID: part.Item_ID,
+        Booking_Date: date,
+        Booking_Time: time,
+      }),
+    }).then(res => res.json())
+
+    const req2 = fetch("/api/bookings", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        Customer_ID: user.id === 1 ? 2 : 1, // Another user
+        Item_ID: part.Item_ID,
+        Booking_Date: date,
+        Booking_Time: time,
+      }),
+    }).then(res => res.json())
+
+    try {
+      const [res1, res2] = await Promise.all([req1, req2])
+      
+      setSimulationResults({
+        user1: res1.success ? "Success: Booking confirmed." : `Failed: ${res1.error}`,
+        user2: res2.success ? "Success: Booking confirmed." : `Failed: ${res2.error}`,
+      })
+      
+      if (res1.success || res2.success) {
+        onBookingComplete?.()
+      }
+    } catch(err) {
+      console.error(err)
+    }
+    
+    setIsSimulating(false)
   }
 
   const handleViewBookings = () => {
@@ -102,6 +152,45 @@ export function PartDetailModal({ part, open, onClose, onBookingComplete }: Part
                 Continue Browsing
               </Button>
               <Button onClick={handleViewBookings}>
+                View My Bookings
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    )
+  }
+
+  if (simulationResults) {
+    return (
+      <Dialog open={open} onOpenChange={onClose}>
+        <DialogContent className="sm:max-w-md">
+          <div className="flex flex-col items-center py-6">
+            <div className="w-16 h-16 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center mb-4">
+              <Users className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+            </div>
+            <DialogTitle className="text-xl">Transaction Simulation</DialogTitle>
+            <DialogDescription className="mt-2 text-center">
+              We simulated 2 users trying to book this item at the exact same moment. 
+              Here is how the database prevented a double booking:
+            </DialogDescription>
+            
+            <div className="w-full mt-6 space-y-3">
+              <Alert variant={simulationResults.user1.includes("Success") ? "default" : "destructive"} className={simulationResults.user1.includes("Success") ? "bg-green-500/10 text-green-700 border-green-500/20" : ""}>
+                <AlertTitle>Customer 1 (You)</AlertTitle>
+                <AlertDescription className={simulationResults.user1.includes("Success") ? "text-green-600 dark:text-green-500" : ""}>{simulationResults.user1}</AlertDescription>
+              </Alert>
+              <Alert variant={simulationResults.user2.includes("Success") ? "default" : "destructive"} className={simulationResults.user2.includes("Success") ? "bg-green-500/10 text-green-700 border-green-500/20" : ""}>
+                <AlertTitle>Customer 2 (Simulated)</AlertTitle>
+                <AlertDescription className={simulationResults.user2.includes("Success") ? "text-green-600 dark:text-green-500" : ""}>{simulationResults.user2}</AlertDescription>
+              </Alert>
+            </div>
+
+            <div className="flex gap-3 mt-6 w-full">
+              <Button variant="outline" className="flex-1" onClick={onClose}>
+                Close
+              </Button>
+              <Button className="flex-1" onClick={handleViewBookings}>
                 View My Bookings
               </Button>
             </div>
@@ -215,9 +304,26 @@ export function PartDetailModal({ part, open, onClose, onBookingComplete }: Part
             <Button 
               className="flex-1" 
               onClick={handleBooking}
-              disabled={!date || !time || isSubmitting}
+              disabled={!date || !time || isSubmitting || isSimulating}
             >
               {isSubmitting ? "Booking..." : "Confirm Booking"}
+            </Button>
+          </div>
+          <div className="pt-2">
+            <Button 
+              variant="secondary"
+              className="w-full bg-blue-100/50 hover:bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 dark:text-blue-300" 
+              onClick={handleSimulateConcurrency}
+              disabled={!date || !time || isSubmitting || isSimulating}
+            >
+              {isSimulating ? (
+                "Simulating Concurrency..."
+              ) : (
+                <>
+                  <Users className="w-4 h-4 mr-2" />
+                  Simulate Concurrent Booking
+                </>
+              )}
             </Button>
           </div>
         </div>
